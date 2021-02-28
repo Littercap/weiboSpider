@@ -10,6 +10,8 @@ import shutil
 import sys
 from datetime import date, datetime, timedelta
 from time import sleep
+import csv
+import telegram
 
 from absl import app, flags
 from tqdm import tqdm
@@ -354,14 +356,65 @@ def _get_config():
         sys.exit()
 
 
+def tele_send(bot, chat_id, send_data):
+
+    bot.sendMessage(chat_id=chat_id, text=send_data[1])
+    logger.info('bot send meg: ' + send_data[1])
+    if len(send_data[3]) > 10:
+        logger.info('bot send pic: ' + send_data[3])
+        bot.sendPhoto(chat_id=chat_id, photo=send_data[3])
+
 def main(_):
-    try:
-        config = _get_config()
-        config_util.validate_config(config)
+    last_weibo = 'null'
+
+
+    config = _get_config()
+    config_util.validate_config(config)
+
+    bot_token = config['bot_token']
+    bot_chat_id = config['bot_chat_id']
+    spider_user = config['user_id_list'][0]
+
+    bot = telegram.Bot(token=bot_token)
+    csv_path = os.getcwd() + os.sep + 'weibo' + os.sep + spider_user + os.sep + spider_user + '.csv'
+    # chat_id = bot.getUpdates()[-1].message.chat_id
+
+    while True:
+        """仅获取当天部分"""
+        if os.path.exists(csv_path):
+            os.remove(csv_path)
+        current_data = datetime.now().strftime('%Y-%m-%d')
+        config['since_date'] = current_data
+        config['user_id_list'] = [spider_user]
+        logger.info(u'今天是' + config["since_date"])
         wb = Spider(config)
         wb.start()  # 爬取微博信息
-    except Exception as e:
-        logger.exception(e)
+        logger.info(u'完成一次抓取')
+
+        if os.path.exists(csv_path):
+            weibo_data = []
+            with open(csv_path, encoding='utf-8-sig', newline='') as csv_file:
+                csv_reader = csv.reader(csv_file)  # 使用csv.reader读取csvfile中的文件
+                next(csv_reader)
+                for row in csv_reader:  # 将csv 文件中的数据保存到birth_data中
+                    weibo_data.append(row)
+
+        if last_weibo == 'null': # first time round
+            tele_send(bot, bot_chat_id, weibo_data[0])
+            last_weibo = weibo_data[0][0]
+            logger.info('last_weibo: ' + last_weibo)
+        else:
+            for s_weibo in weibo_data:
+                if s_weibo[0] == last_weibo:
+                    logger.info('break for no new weibo published')
+                    break
+                else:
+                    tele_send(bot, chat_id, s_weibo)
+                    last_weibo = s_weibo[0]
+                    logger.info('last_weibo: ' + last_weibo)
+        gap_time = random.randint(300, 600)
+        logger.info(u'间隔' + str(gap_time) + u'秒')
+        sleep(gap_time)
 
 
 if __name__ == '__main__':
