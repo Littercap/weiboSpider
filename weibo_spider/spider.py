@@ -409,7 +409,7 @@ def main(_):
                     logger.info('break for no new weibo published')
                     break
                 else:
-                    tele_send(bot, chat_id, s_weibo)
+                    tele_send(bot, bot_chat_id, s_weibo)
                     last_weibo = s_weibo[0]
                     logger.info('last_weibo: ' + last_weibo)
         gap_time = random.randint(300, 600)
