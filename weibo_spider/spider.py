@@ -410,7 +410,7 @@ def main(_):
                     break
                 else:
                     tele_send(bot, bot_chat_id, s_weibo)
-            last_weibo = s_weibo[0]
+            last_weibo = weibo_data[0][0]
             logger.info('last_weibo: ' + last_weibo)
         gap_time = random.randint(300, 600)
         logger.info(u'间隔' + str(gap_time) + u'秒')
