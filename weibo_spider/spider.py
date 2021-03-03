@@ -399,10 +399,8 @@ def main(_):
                 for row in csv_reader:  # 将csv 文件中的数据保存到birth_data中
                     weibo_data.append(row)
 
-        if last_weibo == 'null': # first time round
-            tele_send(bot, bot_chat_id, weibo_data[0])
-            last_weibo = weibo_data[0][0]
-            logger.info('last_weibo: ' + last_weibo)
+        if len(weibo_data) == 0:
+            logger.info(u'今天没有发微博')
         else:
             for s_weibo in weibo_data:
                 if s_weibo[0] == last_weibo:
