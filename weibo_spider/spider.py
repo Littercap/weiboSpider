@@ -380,6 +380,8 @@ def main(_):
     bot = telegram.Bot(token=bot_token)
     csv_path = os.getcwd() + os.sep + 'weibo' + os.sep + spider_user + os.sep + spider_user + '.csv'
     # chat_id = bot.getUpdates()[-1].message.chat_id
+    weibo_list = []
+    weibo_data = []
 
     while True:
         """仅获取当天部分"""
@@ -393,8 +395,8 @@ def main(_):
         wb.start()  # 爬取微博信息
         logger.info(u'完成一次抓取')
 
+        weibo_data.clear()
         if os.path.exists(csv_path):
-            weibo_data = []
             with open(csv_path, encoding='utf-8-sig', newline='') as csv_file:
                 csv_reader = csv.reader(csv_file)  # 使用csv.reader读取csvfile中的文件
                 next(csv_reader)
@@ -402,17 +404,18 @@ def main(_):
                     weibo_data.append(row)
 
         if len(weibo_data) == 0:
+            weibo_list.clear()
             logger.info(u'今天没有发微博')
         else:
             for s_weibo in weibo_data:
-                if s_weibo[0] == last_weibo:
+                if s_weibo[0] in weibo_list:
                     logger.info('break for no more new weibo published')
                     break
                 else:
+                    weibo_list.append(s_weibo[0])
                     tele_send(bot, bot_chat_id, s_weibo)
-            last_weibo = weibo_data[0][0]
-            logger.info('last_weibo: ' + last_weibo)
-        gap_time = random.randint(300, 600)
+
+        gap_time = random.randint(600, 800)
         logger.info(u'间隔' + str(gap_time) + u'秒')
         sleep(gap_time)
 
