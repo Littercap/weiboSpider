@@ -357,12 +357,14 @@ def _get_config():
 
 
 def tele_send(bot, chat_id, send_data):
-
     bot.sendMessage(chat_id=chat_id, text=send_data[1])
     logger.info('bot send meg: ' + send_data[1])
     if len(send_data[3]) > 10:
-        logger.info('bot send pic: ' + send_data[3])
-        bot.sendPhoto(chat_id=chat_id, photo=send_data[3])
+        wei_pic = send_data[3].split(',')
+        for pic in wei_pic:
+            logger.info('bot send pic: ' + send_data[3])
+            bot.sendPhoto(chat_id=chat_id, photo=pic)
+
 
 def main(_):
     last_weibo = 'null'
